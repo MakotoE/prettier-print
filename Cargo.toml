@@ -1,0 +1,8 @@
+[package]
+name = "prettier-print"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+rand = { version = "0.8", features = ["small_rng"] }
+getrandom = "0.2"

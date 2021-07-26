@@ -51,15 +51,16 @@ where
             .max()
             .map_or(0, |n| n + n / 10 + 2);
 
-        let mut result: String = repeat(' ')
-            .take(width)
-            .map(|c| if rng.next().unwrap() { '⭐' } else { c })
-            .chain(once('\n'))
-            .collect();
+        let mut result = '🌟'.to_string();
+        result.extend(repeat(' ').take(width - 2));
+        result.push('🌟');
+        result.push('\n');
 
         for line in debug_str.lines() {
             let leading_whitespace_count = line.chars().take_while(|c| c.is_whitespace()).count();
             let mut char_iter = line.chars();
+
+            result.push(' ');
 
             // Leading space
             result.extend(char_iter.by_ref().take(leading_whitespace_count).map(|c| {
@@ -73,7 +74,7 @@ where
             // Content
             result.extend(char_iter);
 
-            // Trailing space
+            // Trailing stars
             result.extend(repeat(' ').take(width - line.len()).map(|c| {
                 if rng.next().unwrap() {
                     '⭐'
@@ -82,14 +83,19 @@ where
                 }
             }));
 
+            // Remove extra spaces
+            while result.ends_with(' ') {
+                result.pop();
+            }
+
             result.push('\n');
         }
 
-        result.extend(
-            repeat(' ')
-                .take(width)
-                .map(|c| if rng.next().unwrap() { '⭐' } else { c }),
-        );
+        result.push('🌟');
+        result.extend(repeat(' ').take(width - 2));
+        result.push('🌟');
+        result.push('\n');
+
         write!(f, "{}", result)
     }
 }

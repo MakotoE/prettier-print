@@ -50,9 +50,14 @@ where
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         const RAINBOW: char = '🌈';
         const STAR: char = '⭐';
+        const COLORED_STAR: char = '🌟';
 
         let mut rng = SmallRng::from_seed(self.seed.clone());
         let mut line_rng = Bernoulli::from_ratio(3, 5)
+            .unwrap() // Can be unwrap_unchecked()
+            .sample_iter(SmallRng::from_seed(gen_seed(&mut rng)));
+
+        let mut star_rng = Bernoulli::from_ratio(1, 6)
             .unwrap() // Can be unwrap_unchecked()
             .sample_iter(SmallRng::from_seed(gen_seed(&mut rng)));
 
@@ -77,7 +82,12 @@ where
             if leading_space_count > 0 && line_rng.next().unwrap() {
                 let star_index = rng.gen_range(0..leading_space_count);
                 result.extend(repeat(' ').take(star_index));
-                result.push(STAR);
+
+                result.push(if star_rng.next().unwrap() {
+                    COLORED_STAR
+                } else {
+                    STAR
+                });
                 result.extend(repeat(' ').take(leading_space_count - star_index - 1));
 
                 result += line.split_at(leading_space_count).1;
@@ -89,7 +99,11 @@ where
             if line_rng.next().unwrap() {
                 let star_index = rng.gen_range(0..width - line.len());
                 result.extend(repeat(' ').take(star_index));
-                result.push(STAR);
+                result.push(if star_rng.next().unwrap() {
+                    COLORED_STAR
+                } else {
+                    STAR
+                });
             }
 
             // Remove extra spaces
@@ -118,7 +132,7 @@ mod tests {
     fn test() {
         let seed = {
             let mut seed = Seed::default();
-            seed[0] = 15;
+            seed[0] = 170; // Good seed for example
             seed
         };
         {
@@ -148,7 +162,7 @@ mod tests {
             let result = PrettierPrint::new_with_seed(&input, seed).to_string();
             assert!(result.starts_with("🌈                         🌈\n"));
             assert!(result.ends_with("🌈                         🌈\n"));
-            println!("{}", result);
+            // println!("{}", result);
         }
     }
 }

@@ -44,16 +44,13 @@ pub struct PrettierPrintDisplayer<'a, T> {
     inner: &'a T,
 }
 
-impl<T> Display for PrettierPrintDisplayer<'_, T>
-where
-    T: Debug,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl<T> PrettierPrintDisplayer<'_, T> {
+    fn output(seed: Seed, debug_str: &str, f: &mut Formatter<'_>) -> std::fmt::Result {
         const RAINBOW: char = '🌈';
         const STAR: char = '⭐';
         const COLORED_STAR: char = '🌟';
 
-        let mut rng = SmallRng::from_seed(self.seed.clone());
+        let mut rng = SmallRng::from_seed(seed.clone());
         let mut line_rng = Bernoulli::from_ratio(3, 5)
             .unwrap() // Can be unwrap_unchecked()
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
@@ -62,7 +59,6 @@ where
             .unwrap() // Can be unwrap_unchecked()
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
 
-        let debug_str = format!("{:#?}", self.inner);
         let width = debug_str
             .lines()
             .map(|s| s.len())
@@ -126,6 +122,15 @@ where
     }
 }
 
+impl<T> Display for PrettierPrintDisplayer<'_, T>
+where
+    T: Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        PrettierPrintDisplayer::<T>::output(self.seed, &format!("{:#?}", self.inner), f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -162,7 +167,7 @@ mod tests {
                 },
             };
 
-            let mut displayer = PrettierPrinter::new_with_seed(seed).print(&input);
+            let displayer = PrettierPrinter::new_with_seed(seed).print(&input);
 
             let result = displayer.to_string();
             assert!(result.starts_with("🌈                         🌈\n"));

@@ -46,9 +46,10 @@ pub struct PrettierPrintDisplayer<'a, T> {
 
 impl<T> PrettierPrintDisplayer<'_, T> {
     pub fn output(seed: Seed, debug_str: &str) -> String {
+        // TODO colored output
         const RAINBOW: char = '🌈';
         const STAR: char = '⭐';
-        const COLORED_STAR: char = '🌟';
+        const EMOJI_STAR: char = '🌟';
 
         let mut rng = SmallRng::from_seed(seed.clone());
         let mut line_rng = Bernoulli::from_ratio(3, 5)
@@ -83,7 +84,7 @@ impl<T> PrettierPrintDisplayer<'_, T> {
                 if star_rng.next().unwrap() {
                     debug_assert!(result.ends_with(' '));
                     result.pop().unwrap(); // Compensate for wider width of emoji
-                    result.push(COLORED_STAR);
+                    result.push(EMOJI_STAR);
                 } else {
                     result.push(STAR);
                 }
@@ -99,7 +100,7 @@ impl<T> PrettierPrintDisplayer<'_, T> {
                 let star_index = rng.gen_range(0..width - line.len());
                 result.extend(repeat(' ').take(star_index));
                 result.push(if star_rng.next().unwrap() {
-                    COLORED_STAR
+                    EMOJI_STAR
                 } else {
                     STAR
                 });

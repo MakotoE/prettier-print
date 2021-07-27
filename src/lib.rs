@@ -6,44 +6,45 @@ use std::iter::repeat;
 
 pub type Seed = <SmallRng as SeedableRng>::Seed;
 
-#[derive(Debug)]
-pub struct PrettierPrint<'a, T>
-where
-    T: Debug,
-{
-    inner: &'a T,
-    seed: Seed,
+#[derive(Debug, Clone)]
+pub struct PrettierPrinter {
+    rng: SmallRng,
 }
 
-impl<'a, T> PrettierPrint<'a, T>
-where
-    T: Debug,
-{
-    /// Use this to initiate multiple instances with different seeds
-    pub fn new_with_seed(inner: &'a T, seed: Seed) -> Self {
-        Self { inner, seed }
+impl PrettierPrinter {
+    pub fn new() -> Self {
+        Self {
+            rng: SmallRng::from_entropy(),
+        }
     }
-}
 
-impl<'a, T> From<&'a T> for PrettierPrint<'a, T>
-where
-    T: Debug,
-{
-    /// Should only be called once in code
-    fn from(inner: &'a T) -> Self {
+    pub fn new_with_seed(seed: Seed) -> Self {
+        Self {
+            rng: SmallRng::from_seed(seed),
+        }
+    }
+
+    pub fn gen_seed(rng: &mut SmallRng) -> Seed {
         let mut seed = Seed::default();
-        getrandom::getrandom(&mut seed).expect("could not get random bytes");
-        PrettierPrint::new_with_seed(inner, seed)
+        rng.fill(&mut seed);
+        seed
+    }
+
+    pub fn print<'a, T>(&mut self, inner: &'a T) -> PrettierPrintDisplayer<'a, T> {
+        PrettierPrintDisplayer {
+            seed: PrettierPrinter::gen_seed(&mut self.rng),
+            inner,
+        }
     }
 }
 
-pub fn gen_seed(rng: &mut SmallRng) -> Seed {
-    let mut seed = Seed::default();
-    rng.fill(&mut seed);
-    seed
+#[derive(Debug, Clone)]
+pub struct PrettierPrintDisplayer<'a, T> {
+    seed: Seed,
+    inner: &'a T,
 }
 
-impl<'a, T> Display for PrettierPrint<'a, T>
+impl<T> Display for PrettierPrintDisplayer<'_, T>
 where
     T: Debug,
 {
@@ -55,11 +56,11 @@ where
         let mut rng = SmallRng::from_seed(self.seed.clone());
         let mut line_rng = Bernoulli::from_ratio(3, 5)
             .unwrap() // Can be unwrap_unchecked()
-            .sample_iter(SmallRng::from_seed(gen_seed(&mut rng)));
+            .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
 
         let mut star_rng = Bernoulli::from_ratio(1, 6)
             .unwrap() // Can be unwrap_unchecked()
-            .sample_iter(SmallRng::from_seed(gen_seed(&mut rng)));
+            .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
 
         let debug_str = format!("{:#?}", self.inner);
         let width = debug_str
@@ -83,11 +84,13 @@ where
                 let star_index = rng.gen_range(0..leading_space_count);
                 result.extend(repeat(' ').take(star_index));
 
-                result.push(if star_rng.next().unwrap() {
-                    COLORED_STAR
+                if star_rng.next().unwrap() {
+                    debug_assert!(result.ends_with(' '));
+                    result.pop().unwrap(); // Compensate for wider width of emoji
+                    result.push(COLORED_STAR);
                 } else {
-                    STAR
-                });
+                    result.push(STAR);
+                }
                 result.extend(repeat(' ').take(leading_space_count - star_index - 1));
 
                 result += line.split_at(leading_space_count).1;
@@ -136,13 +139,13 @@ mod tests {
             seed
         };
         {
-            let result = PrettierPrint::new_with_seed(&0, seed).to_string();
+            let result = PrettierPrinter::new_with_seed(seed).print(&0).to_string();
             assert!(result.starts_with("🌈 🌈\n"));
             assert!(result.ends_with("🌈 🌈\n"));
             assert!(result.contains(' '));
         }
         {
-            #[derive(Debug)]
+            #[derive(Debug, Clone)]
             struct Type {
                 a: String,
                 b: Vec<i32>,
@@ -159,9 +162,13 @@ mod tests {
                 },
             };
 
-            let result = PrettierPrint::new_with_seed(&input, seed).to_string();
+            let mut displayer = PrettierPrinter::new_with_seed(seed).print(&input);
+
+            let result = displayer.to_string();
             assert!(result.starts_with("🌈                         🌈\n"));
             assert!(result.ends_with("🌈                         🌈\n"));
+            // Check if cloned Displayer outputs the same string
+            assert_eq!(result, displayer.clone().to_string());
             // println!("{}", result);
         }
     }

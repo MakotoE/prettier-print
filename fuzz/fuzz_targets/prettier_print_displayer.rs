@@ -1,7 +1,7 @@
 #![no_main]
 use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
-use prettier_print::{PrettierPrintDisplayer, Seed};
+use prettier_print::prettier_printer::{PrettierPrintDisplayer, Seed};
 
 #[derive(Debug, Arbitrary)]
 struct Input {

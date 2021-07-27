@@ -45,7 +45,7 @@ pub struct PrettierPrintDisplayer<'a, T> {
 }
 
 impl<T> PrettierPrintDisplayer<'_, T> {
-    fn output(seed: Seed, debug_str: &str, f: &mut Formatter<'_>) -> std::fmt::Result {
+    pub fn output(seed: Seed, debug_str: &str) -> String {
         const RAINBOW: char = '🌈';
         const STAR: char = '⭐';
         const COLORED_STAR: char = '🌟';
@@ -117,8 +117,7 @@ impl<T> PrettierPrintDisplayer<'_, T> {
         result.extend(repeat(' ').take(width - 2));
         result.push(RAINBOW);
         result.push('\n');
-
-        write!(f, "{}", result)
+        result
     }
 }
 
@@ -127,7 +126,11 @@ where
     T: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        PrettierPrintDisplayer::<T>::output(self.seed, &format!("{:#?}", self.inner), f)
+        write!(
+            f,
+            "{}",
+            PrettierPrintDisplayer::<T>::output(self.seed, &format!("{:#?}", self.inner))
+        )
     }
 }
 

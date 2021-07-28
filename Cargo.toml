@@ -6,3 +6,7 @@ edition = "2018"
 [dependencies]
 rand = { version = "0.8", features = ["small_rng"] }
 getrandom = "0.2"
+
+[dev-dependencies]
+rstest = "0.10"
+cool_asserts = "1.1"

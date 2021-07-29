@@ -7,7 +7,7 @@ use std::iter::repeat_with;
 use std::ops::Add;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-enum Cell {
+pub(crate) enum Cell {
     Dead,
     Live,
 }
@@ -23,23 +23,23 @@ impl From<Cell> for u8 {
 
 impl Distribution<Cell> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Cell {
-        if rng.gen_ratio(1, 2) {
-            Cell::Dead
-        } else {
+        if rng.gen_ratio(1, 4) {
             Cell::Live
+        } else {
+            Cell::Dead
         }
     }
 }
 
 #[derive(Debug)]
-struct Board {
+pub(crate) struct Board {
     arr: Vec<Cell>,
     width: usize,
     height: usize,
 }
 
 impl Board {
-    fn new(seed: Seed, terminal_size: (u16, u16)) -> Self {
+    pub(crate) fn new(seed: Seed, terminal_size: (u16, u16)) -> Self {
         let mut rng = SmallRng::from_seed(seed).sample_iter(Standard);
         Self {
             arr: repeat_with(|| rng.next().unwrap())
@@ -54,7 +54,7 @@ impl Board {
         Self { arr, width, height }
     }
 
-    fn cell_array(&self) -> &[Cell] {
+    pub(crate) fn cell_array(&self) -> &[Cell] {
         &self.arr
     }
 
@@ -64,7 +64,7 @@ impl Board {
         (((width * height) as isize + index) % (width * height) as isize).abs() as usize
     }
 
-    fn tick(&mut self) {
+    pub(crate) fn tick(&mut self) {
         let original = self.arr.clone();
 
         let width = self.width as isize;

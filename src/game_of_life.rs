@@ -4,7 +4,6 @@ use rand::prelude::Distribution;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 use std::iter::repeat_with;
-use std::ops::Add;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub(crate) enum Cell {

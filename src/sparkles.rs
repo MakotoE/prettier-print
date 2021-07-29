@@ -3,30 +3,35 @@ use crate::prettier_printer::Seed;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use std::fmt::Debug;
-use std::io::{stdout, StdoutLock, Write};
+use std::io::{stdin, Read, StdinLock, StdoutLock, Write};
 use std::iter::once;
 use std::str::Chars;
+use std::thread::sleep;
+use std::time::Duration;
+use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
-use termion::{clear, color, cursor, terminal_size};
+use termion::{clear, color, cursor, terminal_size, AsyncReader};
 
-#[derive(Debug)]
 pub struct Sparkles<'stdout> {
     rng: SmallRng,
-    stdout: StdoutLock<'stdout>,
+    stdout: RawTerminal<StdoutLock<'stdout>>,
+    stdin: AsyncReader,
 }
 
 impl<'stdout> Sparkles<'stdout> {
-    pub fn new(stdout: StdoutLock<'stdout>) -> Self {
+    pub fn new(stdout: StdoutLock<'stdout>, stdin: AsyncReader) -> Self {
         Self {
             rng: SmallRng::from_entropy(),
-            stdout,
+            stdout: stdout.into_raw_mode().unwrap(),
+            stdin,
         }
     }
 
-    pub fn new_with_seed(seed: Seed, stdout: StdoutLock<'stdout>) -> Self {
+    pub fn new_with_seed(seed: Seed, stdout: StdoutLock<'stdout>, stdin: AsyncReader) -> Self {
         Self {
             rng: SmallRng::from_seed(seed),
-            stdout,
+            stdout: stdout.into_raw_mode().unwrap(),
+            stdin,
         }
     }
 
@@ -47,11 +52,12 @@ impl<'stdout> Sparkles<'stdout> {
         let terminal_size = (50, 20);
 
         let s = format!("{:#?}", what);
-        let mut debug_str =
-            CenteredDebugString::new(&s, (terminal_size.0 as usize, terminal_size.1 as usize));
 
         let mut board = Board::new(Seed::default(), terminal_size);
-        loop {
+        while self.stdin.by_ref().bytes().next().is_none() {
+            let mut debug_str =
+                CenteredDebugString::new(&s, (terminal_size.0 as usize, terminal_size.1 as usize));
+
             for (i, cell) in board.cell_array().iter().enumerate() {
                 match cell {
                     Cell::Dead => write!(self.stdout, "{}", color::Bg(color::Reset))?,
@@ -61,13 +67,19 @@ impl<'stdout> Sparkles<'stdout> {
 
                 // Line break
                 if i % terminal_size.0 as usize == terminal_size.0 as usize - 1 {
-                    write!(self.stdout, "{}\n", color::Bg(color::Reset))?;
+                    write!(
+                        self.stdout,
+                        "{}{}",
+                        color::Bg(color::Reset),
+                        cursor::Goto(0, i as u16 / terminal_size.0 + 1)
+                    )?;
                 }
                 self.stdout.flush()?;
             }
 
-            // board.tick();
-            break;
+            board.tick();
+
+            sleep(Duration::from_millis(50));
         }
 
         write!(
@@ -79,8 +91,8 @@ impl<'stdout> Sparkles<'stdout> {
     }
 }
 
-struct CenteredDebugString<'c> {
-    char_iter: Chars<'c>,
+struct CenteredDebugString<'chars> {
+    char_iter: Chars<'chars>,
     top_margin_length: usize,
     left_margin_length: usize,
     terminal_size: (usize, usize),
@@ -88,8 +100,8 @@ struct CenteredDebugString<'c> {
     in_right_side: bool,
 }
 
-impl<'c> CenteredDebugString<'c> {
-    fn new(s: &'c str, terminal_size: (usize, usize)) -> Self {
+impl<'chars> CenteredDebugString<'chars> {
+    fn new(s: &'chars str, terminal_size: (usize, usize)) -> Self {
         Self {
             char_iter: s.chars(),
             top_margin_length: CenteredDebugString::margin_length(
@@ -168,6 +180,8 @@ mod tests {
     use super::*;
     use rstest::rstest;
     use std::collections::HashMap;
+    use std::io::stdout;
+    use termion::async_stdin;
     use termion::raw::IntoRawMode;
 
     #[test]
@@ -190,7 +204,8 @@ mod tests {
         };
 
         let stdout = stdout();
-        let mut sparkles = Sparkles::new(stdout.lock());
+        let stdin = stdin();
+        let mut sparkles = Sparkles::new(stdout.lock(), async_stdin());
         sparkles.output(&input).unwrap();
     }
 

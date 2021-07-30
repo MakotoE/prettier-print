@@ -11,6 +11,8 @@ use std::time::Duration;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{clear, color, cursor, terminal_size, AsyncReader};
 
+/// Prints the debug string, and runs game of life on top of the printed string. The output covers
+/// the full terminal screen. Only works in a tty terminal on Unix and Unix-like platforms.
 pub struct Sparkles<'stdout> {
     rng: SmallRng,
     stdout: RawTerminal<StdoutLock<'stdout>>,
@@ -18,6 +20,8 @@ pub struct Sparkles<'stdout> {
 }
 
 impl<'stdout> Sparkles<'stdout> {
+    /// For stdout, call `let stdout = stdout();` and `stdout.lock()`.
+    /// Get stdin with `termion::async_stdin()`.
     pub fn new(stdout: StdoutLock<'stdout>, stdin: AsyncReader) -> Self {
         Self {
             rng: SmallRng::from_entropy(),
@@ -26,7 +30,8 @@ impl<'stdout> Sparkles<'stdout> {
         }
     }
 
-    pub fn output<T>(&mut self, what: &T) -> std::io::Result<()>
+    /// Runs the output screen. Press any key to stop.
+    pub fn run<T>(&mut self, what: &T) -> std::io::Result<()>
     where
         T: Debug,
     {
@@ -41,12 +46,14 @@ impl<'stdout> Sparkles<'stdout> {
 
         let terminal_size = terminal_size().unwrap();
 
-        let s = format!("{:#?}", what);
+        let debug_str = format!("{:#?}", what);
 
         let mut board = Board::new(PrettierPrinter::gen_seed(&mut self.rng), terminal_size);
         while self.stdin.by_ref().bytes().next().is_none() {
-            let mut debug_str =
-                CenteredDebugString::new(&s, (terminal_size.0 as usize, terminal_size.1 as usize));
+            let mut debug_str = CenteredDebugString::new(
+                &debug_str,
+                (terminal_size.0 as usize, terminal_size.1 as usize),
+            );
 
             for (i, cell) in board.cell_array().iter().enumerate() {
                 match cell {
@@ -81,6 +88,7 @@ impl<'stdout> Sparkles<'stdout> {
     }
 }
 
+/// Turns the debug string into a grid of chars.  
 struct CenteredDebugString<'chars> {
     char_iter: Chars<'chars>,
     top_margin_length: usize,
@@ -196,7 +204,7 @@ mod tests {
 
         let stdout = stdout();
         let mut sparkles = Sparkles::new(stdout.lock(), async_stdin());
-        sparkles.output(&input).unwrap();
+        sparkles.run(&input).unwrap();
     }
 
     #[rstest]

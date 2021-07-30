@@ -30,6 +30,7 @@ impl Distribution<Cell> for Standard {
     }
 }
 
+/// Game of life implementation
 #[derive(Debug)]
 pub(crate) struct Board {
     arr: Vec<Cell>,
@@ -54,6 +55,7 @@ impl Board {
         Self { arr, width, height }
     }
 
+    /// Flattened output grid
     pub(crate) fn cell_array(&self) -> &[Cell] {
         &self.arr
     }
@@ -64,6 +66,7 @@ impl Board {
         (((width * height) as isize + index) % (width * height) as isize).abs() as usize
     }
 
+    /// Step one frame
     pub(crate) fn tick(&mut self) {
         let original = self.arr.clone();
 

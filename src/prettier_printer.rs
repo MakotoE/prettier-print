@@ -7,24 +7,28 @@ use std::iter::repeat;
 
 pub type Seed = <SmallRng as SeedableRng>::Seed;
 
+/// Outputs a prettier-printed version of the `Debug` string of a variable.
 #[derive(Debug, Clone)]
 pub struct PrettierPrinter {
     rng: SmallRng,
 }
 
 impl PrettierPrinter {
+    /// Instantiates `PrettierPrinter` with given seed. See also `default()`.
     pub fn new_with_seed(seed: Seed) -> Self {
         Self {
             rng: SmallRng::from_seed(seed),
         }
     }
 
+    /// Generates a `Seed` from given `SmallRng`.
     pub fn gen_seed(rng: &mut SmallRng) -> Seed {
         let mut seed = Seed::default();
         rng.fill(&mut seed);
         seed
     }
 
+    /// Pass your variable to this.
     pub fn print<'a, T>(&mut self, inner: &'a T) -> PrettierPrintDisplayer<'a, T> {
         PrettierPrintDisplayer {
             seed: PrettierPrinter::gen_seed(&mut self.rng),
@@ -34,6 +38,7 @@ impl PrettierPrinter {
 }
 
 impl Default for PrettierPrinter {
+    /// Use this if you want to keep things simple. Calls `getrandom()` to get seed.
     fn default() -> Self {
         Self {
             rng: SmallRng::from_entropy(),
@@ -41,6 +46,7 @@ impl Default for PrettierPrinter {
     }
 }
 
+/// Implements `Display` to output the prettier-printed debug string.
 #[derive(Debug, Clone)]
 pub struct PrettierPrintDisplayer<'a, T> {
     seed: Seed,
@@ -55,10 +61,9 @@ impl<T> PrettierPrintDisplayer<'_, T> {
 
         let mut rng = SmallRng::from_seed(seed);
         let mut line_rng = Bernoulli::from_ratio(3, 5)
-            .unwrap() // TODO Can be unwrap_unchecked()
+            .unwrap() // Can be unwrap_unchecked() when API is stabilized
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
 
-        // TODO can be unchecked unwrap
         let mut star_rng = WeightedAliasIndex::new(weights.to_vec())
             .unwrap()
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));

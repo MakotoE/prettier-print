@@ -1,6 +1,7 @@
 use rand::distributions::{Bernoulli, Distribution};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
+use rand_distr::WeightedAliasIndex;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::repeat;
 
@@ -46,18 +47,18 @@ pub struct PrettierPrintDisplayer<'a, T> {
 
 impl<T> PrettierPrintDisplayer<'_, T> {
     pub fn output(seed: Seed, debug_str: &str) -> String {
-        // TODO colored output
         const RAINBOW: char = '🌈';
-        const STAR: char = '⭐';
-        const EMOJI_STAR: char = '🌟';
+        const STARS: &[char] = &['⭐', '🌟', '☀'];
+        let weights: Vec<u8> = vec![15, 3, 1];
 
         let mut rng = SmallRng::from_seed(seed.clone());
         let mut line_rng = Bernoulli::from_ratio(3, 5)
-            .unwrap() // Can be unwrap_unchecked()
+            .unwrap() // TODO Can be unwrap_unchecked()
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
 
-        let mut star_rng = Bernoulli::from_ratio(1, 6)
-            .unwrap() // Can be unwrap_unchecked()
+        // TODO can be unchecked unwrap
+        let mut star_rng = WeightedAliasIndex::new(weights.to_vec())
+            .unwrap()
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));
 
         let width = debug_str
@@ -78,20 +79,16 @@ impl<T> PrettierPrintDisplayer<'_, T> {
 
             // Leading space and content
             if leading_space_count > 0 && line_rng.next().unwrap() {
+                // Add star to line
                 let star_index = rng.gen_range(0..leading_space_count);
                 result.extend(repeat(' ').take(star_index));
 
-                if star_rng.next().unwrap() {
-                    debug_assert!(result.ends_with(' '));
-                    result.pop().unwrap(); // Compensate for wider width of emoji
-                    result.push(EMOJI_STAR);
-                } else {
-                    result.push(STAR);
-                }
+                result.push(STARS[star_rng.next().unwrap()]);
                 result.extend(repeat(' ').take(leading_space_count - star_index - 1));
 
                 result += line.split_at(leading_space_count).1;
             } else {
+                // No star
                 result.push_str(line);
             }
 
@@ -99,11 +96,7 @@ impl<T> PrettierPrintDisplayer<'_, T> {
             if line_rng.next().unwrap() {
                 let star_index = rng.gen_range(0..width - line.len());
                 result.extend(repeat(' ').take(star_index));
-                result.push(if star_rng.next().unwrap() {
-                    EMOJI_STAR
-                } else {
-                    STAR
-                });
+                result.push(STARS[star_rng.next().unwrap()]);
             }
 
             // Remove extra spaces
@@ -141,10 +134,10 @@ mod tests {
     use std::collections::HashMap;
 
     #[test]
-    fn test() {
+    fn prettier_printer() {
         let seed = {
             let mut seed = Seed::default();
-            seed[0] = 170; // Good seed for example
+            seed[0] = 180; // Good seed for example
             seed
         };
         {
@@ -178,7 +171,9 @@ mod tests {
             assert!(result.ends_with("🌈                         🌈\n"));
             // Check if cloned Displayer outputs the same string
             assert_eq!(result, displayer.clone().to_string());
-            // println!("{}", result);
+
+            println!("{:#?}", &input);
+            println!("{}", result);
         }
     }
 }

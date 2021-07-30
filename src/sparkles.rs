@@ -48,8 +48,7 @@ impl<'stdout> Sparkles<'stdout> {
             color::Fg(color::Reset),
         )?;
 
-        // let terminal_size = terminal_size().unwrap();
-        let terminal_size = (50, 20);
+        let terminal_size = terminal_size().unwrap();
 
         let s = format!("{:#?}", what);
 
@@ -184,8 +183,8 @@ mod tests {
     use termion::async_stdin;
     use termion::raw::IntoRawMode;
 
-    #[test]
-    fn test() {
+    // #[test]
+    fn run_sparkles() {
         #[derive(Debug)]
         struct Type {
             a: String,

@@ -49,6 +49,7 @@ impl Board {
         }
     }
 
+    #[allow(dead_code)] // Used in test
     fn new_with_array(arr: Vec<Cell>, width: usize, height: usize) -> Self {
         Self { arr, width, height }
     }
@@ -81,7 +82,7 @@ impl Board {
                     + u8::from(original[index(i + width + 1)])
             };
 
-            if sum < 2 || sum > 3 {
+            if !matches!(sum, 2 | 3) {
                 self.arr[i as usize] = Cell::Dead;
             } else if original[i as usize] == Cell::Dead && sum == 3 {
                 self.arr[i as usize] = Cell::Live;

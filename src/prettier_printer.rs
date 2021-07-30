@@ -13,12 +13,6 @@ pub struct PrettierPrinter {
 }
 
 impl PrettierPrinter {
-    pub fn new() -> Self {
-        Self {
-            rng: SmallRng::from_entropy(),
-        }
-    }
-
     pub fn new_with_seed(seed: Seed) -> Self {
         Self {
             rng: SmallRng::from_seed(seed),
@@ -39,6 +33,14 @@ impl PrettierPrinter {
     }
 }
 
+impl Default for PrettierPrinter {
+    fn default() -> Self {
+        Self {
+            rng: SmallRng::from_entropy(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct PrettierPrintDisplayer<'a, T> {
     seed: Seed,
@@ -51,7 +53,7 @@ impl<T> PrettierPrintDisplayer<'_, T> {
         const STARS: &[char] = &['⭐', '🌟', '☀'];
         let weights: Vec<u8> = vec![15, 3, 1];
 
-        let mut rng = SmallRng::from_seed(seed.clone());
+        let mut rng = SmallRng::from_seed(seed);
         let mut line_rng = Bernoulli::from_ratio(3, 5)
             .unwrap() // TODO Can be unwrap_unchecked()
             .sample_iter(SmallRng::from_seed(PrettierPrinter::gen_seed(&mut rng)));

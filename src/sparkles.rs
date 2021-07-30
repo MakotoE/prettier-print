@@ -1,14 +1,13 @@
 use crate::game_of_life::{Board, Cell};
-use crate::prettier_printer::Seed;
+use crate::prettier_printer::PrettierPrinter;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use std::fmt::Debug;
-use std::io::{stdin, Read, StdinLock, StdoutLock, Write};
+use std::io::{Read, StdoutLock, Write};
 use std::iter::once;
 use std::str::Chars;
 use std::thread::sleep;
 use std::time::Duration;
-use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{clear, color, cursor, terminal_size, AsyncReader};
 
@@ -22,14 +21,6 @@ impl<'stdout> Sparkles<'stdout> {
     pub fn new(stdout: StdoutLock<'stdout>, stdin: AsyncReader) -> Self {
         Self {
             rng: SmallRng::from_entropy(),
-            stdout: stdout.into_raw_mode().unwrap(),
-            stdin,
-        }
-    }
-
-    pub fn new_with_seed(seed: Seed, stdout: StdoutLock<'stdout>, stdin: AsyncReader) -> Self {
-        Self {
-            rng: SmallRng::from_seed(seed),
             stdout: stdout.into_raw_mode().unwrap(),
             stdin,
         }
@@ -52,7 +43,7 @@ impl<'stdout> Sparkles<'stdout> {
 
         let s = format!("{:#?}", what);
 
-        let mut board = Board::new(Seed::default(), terminal_size);
+        let mut board = Board::new(PrettierPrinter::gen_seed(&mut self.rng), terminal_size);
         while self.stdin.by_ref().bytes().next().is_none() {
             let mut debug_str =
                 CenteredDebugString::new(&s, (terminal_size.0 as usize, terminal_size.1 as usize));
@@ -109,7 +100,7 @@ impl<'chars> CenteredDebugString<'chars> {
             ),
             left_margin_length: CenteredDebugString::margin_length(
                 terminal_size.0,
-                CenteredDebugString::longest_line(&s),
+                CenteredDebugString::longest_line(s),
             ),
             curr_index: 0,
             terminal_size,
@@ -137,6 +128,7 @@ impl<'chars> CenteredDebugString<'chars> {
         (max_length.saturating_sub(content_length)) / 2
     }
 
+    #[allow(dead_code)]
     fn len(&self) -> usize {
         self.terminal_size.0 * self.terminal_size.1
     }
@@ -181,9 +173,9 @@ mod tests {
     use std::collections::HashMap;
     use std::io::stdout;
     use termion::async_stdin;
-    use termion::raw::IntoRawMode;
 
     // #[test]
+    #[allow(dead_code)]
     fn run_sparkles() {
         #[derive(Debug)]
         struct Type {
@@ -203,7 +195,6 @@ mod tests {
         };
 
         let stdout = stdout();
-        let stdin = stdin();
         let mut sparkles = Sparkles::new(stdout.lock(), async_stdin());
         sparkles.output(&input).unwrap();
     }

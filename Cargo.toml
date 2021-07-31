@@ -5,7 +5,7 @@ edition = "2018"
 authors = ["Makoto <makoto@emurasoft.com>"]
 documentation = "https://docs.rs/prettier-print/"
 license = "MIT"
-description = ""
+description = "🌈 Prettier-printed debug strings 🌈"
 repository = "https://github.com/MakotoE/prettier-print"
 readme = "README.md"
 

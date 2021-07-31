@@ -216,8 +216,7 @@ mod tests {
         };
 
         let stdout = stdout();
-        let mut sparkles = Sparkles::new(stdout.lock());
-        sparkles.run(&input).unwrap();
+        Sparkles::new(stdout.lock()).run(&input).unwrap();
     }
 
     #[rstest]

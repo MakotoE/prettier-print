@@ -14,7 +14,7 @@ pub struct PrettierPrinter {
 }
 
 impl PrettierPrinter {
-    /// Instantiates `PrettierPrinter` with given seed. See also `default()`.
+    /// Instantiates `PrettierPrinter` with given seed. See also [`PrettierPrinter::default()`].
     pub fn new_with_seed(seed: Seed) -> Self {
         Self {
             rng: SmallRng::from_seed(seed),
@@ -46,7 +46,8 @@ impl Default for PrettierPrinter {
     }
 }
 
-/// Implements `Display` to output the prettier-printed debug string.
+/// Implements `Display` to output the prettier-printed debug string. Use `PrettierPrinter` to
+/// get a `PrettierPrintDisplayer`.
 #[derive(Debug, Clone)]
 pub struct PrettierPrintDisplayer<'a, T> {
     seed: Seed,

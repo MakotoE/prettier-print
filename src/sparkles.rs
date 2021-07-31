@@ -17,6 +17,8 @@ use std::time::Duration;
 
 /// Prints the debug string, and runs game of life on top of the printed string. The output covers
 /// the full terminal screen.
+///
+/// The frame rate is very slow on Windows and I don't know why.
 pub struct Sparkles<'stream> {
     rng: SmallRng,
     stdout: StdoutLock<'stream>,
@@ -195,8 +197,8 @@ mod tests {
     use std::collections::HashMap;
     use std::io::stdout;
 
-    // #[test]
-    #[allow(dead_code)]
+    #[test]
+    // #[allow(dead_code)]
     fn run_sparkles() {
         #[derive(Debug)]
         struct Type {

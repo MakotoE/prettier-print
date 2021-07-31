@@ -105,7 +105,7 @@ impl<'stream> Sparkles<'stream> {
 }
 
 /// Turns the debug string into a grid of chars.  
-struct CenteredDebugString<'chars> {
+pub struct CenteredDebugString<'chars> {
     char_iter: Chars<'chars>,
     top_margin_length: usize,
     left_margin_length: usize,
@@ -115,7 +115,7 @@ struct CenteredDebugString<'chars> {
 }
 
 impl<'chars> CenteredDebugString<'chars> {
-    fn new(s: &'chars str, terminal_size: (usize, usize)) -> Self {
+    pub fn new(s: &'chars str, terminal_size: (usize, usize)) -> Self {
         Self {
             char_iter: s.chars(),
             top_margin_length: CenteredDebugString::margin_length(
@@ -152,8 +152,7 @@ impl<'chars> CenteredDebugString<'chars> {
         (max_length.saturating_sub(content_length)) / 2
     }
 
-    #[allow(dead_code)]
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.terminal_size.0 * self.terminal_size.1
     }
 }

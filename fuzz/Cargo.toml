@@ -25,3 +25,9 @@ name = "prettier_print_displayer"
 path = "fuzz_targets/prettier_print_displayer.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "centered_debug_string"
+path = "fuzz_targets/centered_debug_string.rs"
+test = false
+doc = false

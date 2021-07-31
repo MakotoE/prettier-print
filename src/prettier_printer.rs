@@ -179,8 +179,8 @@ mod tests {
             // Check if cloned Displayer outputs the same string
             assert_eq!(result, displayer.clone().to_string());
 
-            println!("{:#?}", &input);
-            println!("{}", result);
+            println!("\n{:#?}\n\n", &input);
+            println!("{}\n", result);
         }
     }
 }

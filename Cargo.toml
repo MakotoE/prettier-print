@@ -2,6 +2,12 @@
 name = "prettier-print"
 version = "0.1.0"
 edition = "2018"
+authors = ["Makoto <makoto@emurasoft.com>"]
+documentation = "https://docs.rs/prettier-print/"
+license = "MIT"
+description = ""
+repository = "https://github.com/MakotoE/prettier-print"
+readme = "README.md"
 
 [dependencies]
 rand = { version = "0.8", features = ["small_rng"] }

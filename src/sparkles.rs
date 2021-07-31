@@ -37,11 +37,12 @@ impl<'stdout> Sparkles<'stdout> {
     {
         write!(
             self.stdout,
-            "{}{}{}{}",
+            "{}{}{}{}{}",
             clear::All,
             cursor::Goto(1, 1),
             color::Bg(color::Reset),
             color::Fg(color::Reset),
+            cursor::Hide,
         )?;
 
         let terminal_size = terminal_size().unwrap();
@@ -81,9 +82,10 @@ impl<'stdout> Sparkles<'stdout> {
 
         write!(
             self.stdout,
-            "{}{}",
+            "{}{}{}",
             color::Bg(color::Reset),
-            color::Fg(color::Reset)
+            color::Fg(color::Reset),
+            cursor::Show
         )
     }
 }
@@ -182,8 +184,8 @@ mod tests {
     use std::io::stdout;
     use termion::async_stdin;
 
-    // #[test]
-    #[allow(dead_code)]
+    #[test]
+    // #[allow(dead_code)]
     fn run_sparkles() {
         #[derive(Debug)]
         struct Type {

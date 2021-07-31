@@ -12,9 +12,8 @@ readme = "README.md"
 [dependencies]
 rand = { version = "0.8", features = ["small_rng"] }
 getrandom = "0.2"
-termion = "1.5"
 rand_distr = "0.4"
+crossterm = "0.20"
 
 [dev-dependencies]
 rstest = "0.10"
-cool_asserts = "1.1"

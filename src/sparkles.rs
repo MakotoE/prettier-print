@@ -1,32 +1,40 @@
 use crate::game_of_life::{Board, Cell};
-use crate::prettier_printer::PrettierPrinter;
+use crate::prettier_printer::{PrettierPrinter, Seed};
+use crossterm::cursor;
+use crossterm::cursor::{MoveTo, MoveToNextLine};
+use crossterm::event::poll;
+use crossterm::style::{Color, Colors, Print, SetBackgroundColor, SetColors};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType};
+use crossterm::{queue, terminal};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use std::fmt::Debug;
-use std::io::{Read, StdoutLock, Write};
+use std::io::{StdoutLock, Write};
 use std::iter::once;
 use std::str::Chars;
 use std::thread::sleep;
 use std::time::Duration;
-use termion::raw::{IntoRawMode, RawTerminal};
-use termion::{clear, color, cursor, terminal_size, AsyncReader};
 
 /// Prints the debug string, and runs game of life on top of the printed string. The output covers
-/// the full terminal screen. Only works in a tty terminal on Unix and Unix-like platforms.
-pub struct Sparkles<'stdout> {
+/// the full terminal screen.
+pub struct Sparkles<'stream> {
     rng: SmallRng,
-    stdout: RawTerminal<StdoutLock<'stdout>>,
-    stdin: AsyncReader,
+    stdout: StdoutLock<'stream>,
 }
 
-impl<'stdout> Sparkles<'stdout> {
-    /// For stdout, call `let stdout = stdout();` and `stdout.lock()`.
-    /// Get stdin with `termion::async_stdin()`.
-    pub fn new(stdout: StdoutLock<'stdout>, stdin: AsyncReader) -> Self {
+impl<'stream> Sparkles<'stream> {
+    /// Initializes with random seed.
+    pub fn new(stdout: StdoutLock<'stream>) -> Self {
         Self {
             rng: SmallRng::from_entropy(),
-            stdout: stdout.into_raw_mode().unwrap(),
-            stdin,
+            stdout,
+        }
+    }
+
+    pub fn new_with_seed(seed: Seed, stdout: StdoutLock<'stream>) -> Self {
+        Self {
+            rng: SmallRng::from_seed(seed),
+            stdout,
         }
     }
 
@@ -35,41 +43,45 @@ impl<'stdout> Sparkles<'stdout> {
     where
         T: Debug,
     {
-        write!(
+        enable_raw_mode().unwrap();
+        queue!(
             self.stdout,
-            "{}{}{}{}{}",
-            clear::All,
-            cursor::Goto(1, 1),
-            color::Bg(color::Reset),
-            color::Fg(color::Reset),
+            Clear(ClearType::All),
+            MoveTo(0, 0),
+            SetColors(Colors::new(Color::Reset, Color::Reset)),
             cursor::Hide,
         )?;
 
-        let terminal_size = terminal_size().unwrap();
+        let terminal_size = terminal::size().unwrap();
 
         let debug_str = format!("{:#?}", what);
 
         let mut board = Board::new(PrettierPrinter::gen_seed(&mut self.rng), terminal_size);
-        while self.stdin.by_ref().bytes().next().is_none() {
+        while !poll(Duration::from_secs(0))? {
+            queue!(self.stdout, MoveTo(0, 0))?;
+
             let mut debug_str = CenteredDebugString::new(
                 &debug_str,
                 (terminal_size.0 as usize, terminal_size.1 as usize),
             );
 
             for (i, cell) in board.cell_array().iter().enumerate() {
-                match cell {
-                    Cell::Dead => write!(self.stdout, "{}", color::Bg(color::Reset))?,
-                    Cell::Live => write!(self.stdout, "{}", color::Bg(color::LightWhite))?,
+                let color = match cell {
+                    Cell::Dead => Color::Reset,
+                    Cell::Live => Color::White,
                 };
-                write!(self.stdout, "{}", debug_str.next().unwrap())?;
+                queue!(
+                    self.stdout,
+                    SetBackgroundColor(color),
+                    Print(debug_str.next().unwrap())
+                )?;
 
                 // Line break
                 if i % terminal_size.0 as usize == terminal_size.0 as usize - 1 {
-                    write!(
+                    queue!(
                         self.stdout,
-                        "{}{}",
-                        color::Bg(color::Reset),
-                        cursor::Goto(0, i as u16 / terminal_size.0 + 1)
+                        SetBackgroundColor(Color::Reset),
+                        MoveToNextLine(1),
                     )?;
                 }
                 self.stdout.flush()?;
@@ -80,13 +92,13 @@ impl<'stdout> Sparkles<'stdout> {
             sleep(Duration::from_millis(50));
         }
 
-        write!(
+        disable_raw_mode().unwrap();
+        queue!(
             self.stdout,
-            "{}{}{}",
-            color::Bg(color::Reset),
-            color::Fg(color::Reset),
-            cursor::Show
-        )
+            SetColors(Colors::new(Color::Reset, Color::Reset)),
+            cursor::Show,
+        )?;
+        self.stdout.flush()
     }
 }
 
@@ -182,10 +194,9 @@ mod tests {
     use rstest::rstest;
     use std::collections::HashMap;
     use std::io::stdout;
-    use termion::async_stdin;
 
-    #[test]
-    // #[allow(dead_code)]
+    // #[test]
+    #[allow(dead_code)]
     fn run_sparkles() {
         #[derive(Debug)]
         struct Type {
@@ -205,7 +216,7 @@ mod tests {
         };
 
         let stdout = stdout();
-        let mut sparkles = Sparkles::new(stdout.lock(), async_stdin());
+        let mut sparkles = Sparkles::new(stdout.lock());
         sparkles.run(&input).unwrap();
     }
 

@@ -1,6 +1,6 @@
 [![Latest version](https://img.shields.io/crates/v/prettier-print.svg)](https://crates.io/crates/prettier-print) [![Documentation](https://docs.rs/prettier-print/badge.svg)](https://docs.rs/prettier-print/)
 
-I'm not a fan of the built-in "pretty-print" debug output (format string `"{:#?}"`) because they don't look so pretty to me. That is why I made this crate.
+I'm not a fan of the built-in "pretty-printed" debug output (format string `"{:#?}"`) because they don't look so pretty to me. That is why I made this crate.
 
 `prettier-print` contains two modules. The first is `prettier_printer` which adds rainbows and stars to the debug string.
 

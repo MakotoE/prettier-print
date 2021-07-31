@@ -1,6 +1,6 @@
 [package]
 name = "prettier-print"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 authors = ["Makoto <makoto@emurasoft.com>"]
 documentation = "https://docs.rs/prettier-print/"
@@ -11,7 +11,6 @@ readme = "README.md"
 
 [dependencies]
 rand = { version = "0.8", features = ["small_rng"] }
-getrandom = "0.2"
 rand_distr = "0.4"
 crossterm = "0.20"
 

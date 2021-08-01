@@ -1,6 +1,6 @@
 [package]
 name = "prettier-print"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2018"
 authors = ["Makoto <makoto@emurasoft.com>"]
 documentation = "https://docs.rs/prettier-print/"

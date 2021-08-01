@@ -57,8 +57,8 @@ pub struct PrettierPrintDisplayer<'a, T> {
 impl<T> PrettierPrintDisplayer<'_, T> {
     pub fn output(seed: Seed, debug_str: &str) -> String {
         const RAINBOW: char = '🌈';
-        const STARS: &[char] = &['⭐', '🌟', '☀'];
-        let weights: Vec<u8> = vec![15, 3, 1];
+        const STARS: &[char] = &['⭐', '🌟', '☀', '🦀'];
+        let weights: Vec<u16> = vec![1500, 300, 100, 1];
 
         let mut rng = SmallRng::from_seed(seed);
         let mut line_rng = Bernoulli::from_ratio(3, 5)

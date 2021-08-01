@@ -196,8 +196,8 @@ mod tests {
     use std::collections::HashMap;
     use std::io::stdout;
 
-    #[test]
-    // #[allow(dead_code)]
+    // #[test]
+    #[allow(dead_code)]
     fn run_sparkles() {
         #[derive(Debug)]
         struct Type {

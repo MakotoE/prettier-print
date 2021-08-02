@@ -10,6 +10,9 @@ I'm not a fan of the built-in "pretty-printed" debug output (format string `"{:#
 
 ```rust
 // How to use PrettierPrinter
+use prettier_print::prettier_printer::PrettierPrinter;
+
+let variable = 1;
 println!("{}", PrettierPrinter::default().print(&variable));
 ```
 
@@ -17,7 +20,10 @@ println!("{}", PrettierPrinter::default().print(&variable));
 
 https://user-images.githubusercontent.com/36318069/127730094-cbd2884c-3aa4-4084-addd-3536aec43278.mp4
 
-```rust
-let stdout = stdout();
-Sparkles::new(stdout.lock()).run(&variable)?;
+```no_run
+use prettier_print::sparkles::Sparkles;
+
+let stdout = std::io::stdout();
+let variable = 1;
+Sparkles::new(stdout.lock()).run(&variable).unwrap();
 ```

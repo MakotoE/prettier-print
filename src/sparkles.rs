@@ -152,6 +152,7 @@ impl<'chars> CenteredDebugString<'chars> {
         (max_length.saturating_sub(content_length)) / 2
     }
 
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.terminal_size.0 * self.terminal_size.1
     }

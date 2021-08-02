@@ -150,9 +150,11 @@ mod tests {
         };
         {
             let result = PrettierPrinter::new_with_seed(seed).print(&0).to_string();
-            assert!(result.starts_with("🌈 🌈\n"));
-            assert!(result.ends_with("🌈 🌈\n"));
-            assert!(result.contains(' '));
+            let expected = r"🌈 🌈
+ 0
+🌈 🌈
+";
+            assert_eq!(result, expected);
         }
         {
             #[derive(Debug, Clone)]
@@ -175,10 +177,22 @@ mod tests {
             let displayer = PrettierPrinter::new_with_seed(seed).print(&input);
 
             let result = displayer.to_string();
-            assert!(result.starts_with("🌈                         🌈\n"));
-            assert!(result.ends_with("🌈                         🌈\n"));
+            let expected = r#"🌈                         🌈
+ Type {
+ ⭐   a: "a",
+   ⭐ b: [    ⭐
+      🦀  0,
+        ⭐1,    ⭐
+  🌟  ],
+   ⭐ c: {
+ ⭐       "So": "pretty",   ⭐
+   ⭐ },       ⭐
+ }             ☀
+🌈                         🌈
+"#;
+            assert_eq!(result, expected);
             // Check if cloned Displayer outputs the same string
-            assert_eq!(result, displayer.clone().to_string());
+            assert_eq!(displayer.clone().to_string(), expected);
 
             println!("\n{:#?}\n\n", &input);
             println!("{}\n", result);
